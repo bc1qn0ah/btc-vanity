@@ -60,15 +60,15 @@ impl VanityAddr {
                 ));
         }
 
-        let is_base58 = string
+        let not_bech32 = string
             .chars()
-            .any(|c| c == '0' || c == 'I' || c == 'O' || c == 'l' || !c.is_alphanumeric());
+            .any(|c| c == '1' || c == 'b' || c == 'i' || c == 'o' || !c.is_alphanumeric());
 
-        if is_base58 {
+        if not_bech32 {
             return Err(BtcVanityError::VanityGeneratorError(
-                    "Your input is not in base58. Don't include zero: '0', uppercase i: 'I', uppercase o: 'O', lowercase L: 'l' \
+                "Your input is not in bech32. Don't include zero: '1', 'b', 'i', 'o',\
                     or any non-alphanumeric character in your input!",
-                ));
+            ));
         }
 
         Ok(())
@@ -120,7 +120,7 @@ impl SearchEngines {
         vanity_mode: VanityMode,
         secp256k1: Secp256k1<All>,
     ) -> KeysAndAddress {
-        let string_len = string.len();
+        let string_len = 3 + string.len();
         let (sender, receiver) = mpsc::channel();
 
         for _ in 0..threads {
@@ -137,7 +137,7 @@ impl SearchEngines {
 
                     match vanity_mode {
                         VanityMode::Prefix => {
-                            let slice = &address[1..=string_len];
+                            let slice = &address[4..=string_len];
                             prefix_suffix_flag = match case_sensitive {
                                 true => slice == string,
                                 false => slice.to_lowercase() == string.to_lowercase(),

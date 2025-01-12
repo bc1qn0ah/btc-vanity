@@ -22,8 +22,8 @@
 
 use bitcoin::key::{PrivateKey, PublicKey};
 use bitcoin::secp256k1::{rand, All, Secp256k1};
-use bitcoin::Address;
 use bitcoin::Network::Bitcoin;
+use bitcoin::{Address, CompressedPublicKey};
 
 /// A struct to hold bitcoin::secp256k1::SecretKey bitcoin::Key::PublicKey and a string address
 pub struct KeysAndAddress {
@@ -39,11 +39,13 @@ impl KeysAndAddress {
         let (secret_key, pk) = secp256k1.generate_keypair(&mut rand::thread_rng());
         let private_key = PrivateKey::new(secret_key, Bitcoin);
         let public_key = PublicKey::new(pk);
+        assert!(public_key.compressed);
 
         KeysAndAddress {
             private_key,
             public_key,
-            comp_address: Address::p2pkh(public_key, Bitcoin).to_string(),
+            comp_address: Address::p2wpkh(&CompressedPublicKey(public_key.inner), Bitcoin)
+                .to_string(),
         }
     }
 
